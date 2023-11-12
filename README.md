@@ -1,6 +1,6 @@
 ## Tubes_Sisin_IMU_9_Axis
 
-#Contributor
+# Contributor
 - Vanny Alviolani Indriyani   - 13221020 
 - Maritza Humaira             - 13221026
 - Muhamad Fikri               - 13221046
