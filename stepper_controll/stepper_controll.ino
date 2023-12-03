@@ -2,21 +2,24 @@
 #include <Servo.h>
 
 // Stepper Setup
-const int stepsPerRevolution = 200;
+const int stepsPerRevolution = 500;
 
-int base[4] = {8, 9, 10, 11};
-int link1[4] = {12, 13, 14, 15};  // Replace with the correct pin numbers
-int link2[4] = {16, 17, 18, 19};  // Replace with the correct pin numbers
-int grip[4] = {20, 21, 22, 23};  // Replace with the correct pin numbers
+int base[4] = {4, 5, 6, 7};
+int link1[4] = {8, 9, 10, 11};  // Replace with the correct pin numbers
+int link2[4] = {A5, A4, A3, A2};  // Replace with the correct pin numbers
+// int grip[4] = {20, 21, 22, 23};  // Replace with the correct pin numbers
 
 Stepper stepper_base(stepsPerRevolution, base[0], base[1], base[2], base[3]);
 Stepper stepper_link1(stepsPerRevolution, link1[0], link1[1], link1[2], link1[3]);
 Stepper stepper_link2(stepsPerRevolution, link2[0], link2[1], link2[2], link2[3]);
-Stepper stepper_grip(stepsPerRevolution, grip[0], grip[1], grip[2], grip[3]);
+// Stepper stepper_grip(stepsPerRevolution, grip[0], grip[1], grip[2], grip[3]);
 
-// Servo Setup
+// Servo Setup (we dont use it)
 Servo myservo;
 int pos = 0;
+
+// Safety
+int safe_switch = 3;
 
 // Servo control
 void move_servo(Servo &servo_name, int pos) {
@@ -29,16 +32,45 @@ void move_stepper(Stepper &stepper_name, int steps) {
   stepper_name.step(steps);
 }
 
+int conversion (float angle){
+  return angle*100/360;         
+  /*
+    100 is steps per revolution for this stepper, I dont Understand although I already 
+    put 500 Steps per revolution it just do 5 revolution if I execute it
+  */
+}
+
 void setup() {
-  myservo.attach(9);  // Attach the servo to pin 9
-  // Set the speed for the base stepper motor to 60 rpm:
-  stepper_base.setSpeed(60);
-  // Initialize the serial port:
+  myservo.attach(9);  
+  stepper_base.setSpeed(15);            // in RPM
+  stepper_link1.setSpeed(15);           // in RPM best not trembling =30 
+  stepper_link2.setSpeed(15);           // in RPM
+  // stepper_grip.setSpeed(60);         // in RPM
+
+  // SAFE switch declaration
+  pinMode(safe_switch, OUTPUT);
+
   Serial.begin(115200);
 }
 
 void loop() {
-  move_stepper(stepper_base, 20);
-  delay(1000);
+  if (digitalRead(safe_switch) == HIGH){
+    // Replace this with the input data from ESP32
+    float servo1_angle = 60;  
+    float servo2_angle = 180;
+    float servo3_angle = 60;
+    float servo4_angle = 60;
+
+    int stepper_base_steps    = conversion(servo1_angle);
+    int stepper_link1_steps   = conversion(servo2_angle);
+    int stepper_link2_steps   = conversion(servo3_angle);
+    int stepper_grip_steps    = conversion(servo4_angle);
+
+    move_stepper(stepper_base, stepper_link1_steps);
+    move_stepper(stepper_link1, stepper_link1_steps);
+    move_stepper(stepper_link2, stepper_link1_steps);
+    // move_stepper(stepper_grip, stepper_link1_steps);
+    delay(1000);
+  } 
 }
  
